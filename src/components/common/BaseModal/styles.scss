@@ -1,0 +1,28 @@
+.ant-modal-root {
+    .ant-modal-mask {
+        z-index: 20 !important;
+    }
+    
+    .ant-modal-wrap {
+        z-index: 20 !important;
+    
+        .ant-modal-body {
+            padding: 20px 0;
+        }
+
+        .ant-modal-footer {
+            .btn-ok {
+                &:hover {
+                    background-color: #24e841;
+                }
+            }
+
+            .btn-cancel {
+                &:hover {
+                    border-color: #21cf3c;
+                    color: #21cf3c;
+                }
+            }
+        }
+    }
+}
