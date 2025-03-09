@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
-import './App.css'
+import './styles/app.scss'
+
+import { Button } from 'antd'
+import BaseModal from './components/common/BaseModal'
+import BaseButton from './components/common/BaseButton'
 
 function App() {
   const [count, setCount] = useState(0)
