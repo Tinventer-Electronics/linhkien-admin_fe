@@ -3,6 +3,7 @@ import React from 'react'
 import { TiHomeOutline } from 'react-icons/ti'
 import { Link } from 'react-router-dom'
 import { appInfo } from '../../constants/appInfo'
+import { BsBarChartSteps } from 'react-icons/bs';
 
 const { Sider } = Layout
 const { Text } = Typography
@@ -13,6 +14,11 @@ const SiderComponent = () => {
             key: 'dashboard',
             label: <Link to={'/dashboard'}>Trang chủ</Link>,
             icon: <TiHomeOutline size={18} />
+        },
+        {
+            key: 'category',
+            label: <Link to={'/category'}>Danh mục</Link>,
+            icon: <BsBarChartSteps size={18}/>
         },
     ]
     return (
