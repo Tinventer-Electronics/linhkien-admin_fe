@@ -1,5 +1,5 @@
 import './styles/app.scss'
-
+import '@ant-design/v5-patch-for-react-19';
 import { Button, ConfigProvider } from 'antd'
 import Routers from './routers/Routers'
 
