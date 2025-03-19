@@ -5,6 +5,8 @@ import SiderComponent from '../components/SiderComponent'
 import HeaderComponent from '../components/HeaderComponent'
 import Dashboard from '../pages/Dashboard'
 import Category from '../pages/Category'
+import ProductManagement from '../pages/ProductManagement'
+import AddProduct from '../pages/ProductManagement/AddProduct'
 
 const {Content, Footer} = Layout
 
@@ -24,6 +26,10 @@ const MainRouter = () => {
               <Route path='/' element={<Dashboard/>}/>
               <Route path='/dashboard' element={<Dashboard/>}/>
               <Route path='/category' element={<Category/>}/>
+              <Route>
+                <Route path='/product-management' element={<ProductManagement/>}/>
+                <Route path='/product-management/add-new-product' element={<AddProduct/>}/>
+              </Route>
             </Routes>
           </Content>
         </Layout>
