@@ -1,21 +1,26 @@
-import './styles/app.scss'
-import '@ant-design/v5-patch-for-react-19';
-import { Button, ConfigProvider } from 'antd'
-import Routers from './routers/Routers'
+import "./styles/app.scss";
+import "@ant-design/v5-patch-for-react-19";
+import { ConfigProvider } from "antd";
+import Routers from "./routers/Routers";
+import store from "./redux/store";
+import { Provider } from "react-redux";
 
 function App() {
-
-  return (
-    <ConfigProvider theme={{
-      token: {
-        colorPrimary: '#AD343E',
-        fontFamily: 'Noto Sans, sans-serif',
-        fontSize: 16
-      }
-    }}>
-      <Routers/>
-    </ConfigProvider>
-  )
+    return (
+        <ConfigProvider
+            theme={{
+                token: {
+                    colorPrimary: "#AD343E",
+                    fontFamily: "Noto Sans, sans-serif",
+                    fontSize: 16,
+                },
+            }}
+        >
+            <Provider store={store}>
+                <Routers />
+            </Provider>
+        </ConfigProvider>
+    );
 }
 
-export default App
+export default App;
