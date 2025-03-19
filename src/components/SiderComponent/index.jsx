@@ -4,6 +4,7 @@ import { TiHomeOutline } from 'react-icons/ti'
 import { Link } from 'react-router-dom'
 import { appInfo } from '../../constants/appInfo'
 import { BsBarChartSteps } from 'react-icons/bs';
+import { MdOutlineInventory2 } from "react-icons/md";
 
 const { Sider } = Layout
 const { Text } = Typography
@@ -19,6 +20,21 @@ const SiderComponent = () => {
             key: 'category',
             label: <Link to={'/category'}>Danh mục</Link>,
             icon: <BsBarChartSteps size={18}/>
+        },
+        {
+            key: 'product',
+            label: <Link to={'/product-management'}>Quản lý sản phẩm</Link>,
+            icon: <MdOutlineInventory2 size={18} />,
+            children: [
+                {
+                    key: '',
+                    label: <Link to={'/product-management'}>Bảng sản phẩm</Link>
+                },
+                {
+                    key: 'inventory',
+                    label: <Link to={'/product-management/add-new-product'}>Thêm sản phẩm</Link>
+                }
+            ]
         },
     ]
     return (
