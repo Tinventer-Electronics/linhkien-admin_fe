@@ -1,11 +1,11 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
 
 const authSlide = createSlice({
-    name: "auth",
+    name: 'auth',
     initialState: {
         data: {
-            token: "",
-            _id: "",
+            token: '',
+            _id: '',
         },
     },
     reducers: {
@@ -14,8 +14,8 @@ const authSlide = createSlice({
         },
         removeAuth: (state) => {
             state.data = {
-                token: "",
-                _id: "",
+                token: '',
+                _id: '',
             };
         },
     },

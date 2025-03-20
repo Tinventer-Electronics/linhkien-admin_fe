@@ -1,7 +1,7 @@
-import axios from "axios";
-import queryString from "query-string";
+import axios from 'axios';
+import queryString from 'query-string';
 
-const baseURL = "http://localhost:3001";
+const baseURL = 'http://localhost:3001';
 // const baseURLProduction = "https://project-4-server.onrender.com"
 
 const getAccessToken = () => {};
@@ -14,8 +14,8 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(async (config) => {
     const accessToken = getAccessToken();
     config.headers = {
-        Authorization: accessToken ? `Bearer ${accessToken}` : "",
-        Accept: "application/json",
+        Authorization: accessToken ? `Bearer ${accessToken}` : '',
+        Accept: 'application/json',
         ...config.headers,
     };
     return { ...config, data: config.data ?? null };
