@@ -1,35 +1,38 @@
-import { Layout, Menu, Typography } from "antd";
-import React, { useEffect, useState } from "react";
-import { appInfo } from "../../constants/appInfo";
-import { items } from "./menuItems";
-import { useLocation } from "react-router-dom";
+import { Layout, Menu, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { appInfo } from '../../constants/appInfo';
+import { items } from './menuItems';
+import { useLocation } from 'react-router-dom';
 
 const { Sider } = Layout;
 const { Text } = Typography;
 
 const SiderComponent = () => {
     const location = useLocation();
-    const [selectedKeys, setSelectedKeys] = useState([""]);
-    const [openKeys, setOpenKeys] = useState([""]);
+    const [selectedKeys, setSelectedKeys] = useState(['']);
+    const [openKeys, setOpenKeys] = useState(['']);
 
     useEffect(() => {
         const pathname = location.pathname;
 
         // Xác định key dựa trên đường dẫn
-        if (pathname === "/" || pathname === "/dashboard") {
-            setSelectedKeys(["dashboard"]);
+        if (pathname === '/' || pathname === '/dashboard') {
+            setSelectedKeys(['dashboard']);
             setOpenKeys([]);
-        } else if (pathname === "/category") {
-            setSelectedKeys(["category"]);
+        } else if (pathname === '/category') {
+            setSelectedKeys(['category']);
             setOpenKeys([]);
-        } else if (pathname.includes("/product-management")) {
-            setOpenKeys(["product"]);
+        } else if (pathname.includes('/product-management')) {
+            setOpenKeys(['product']);
 
-            if (pathname === "/product-management") {
-                setSelectedKeys(["product-list"]);
-            } else if (pathname === "/product-management/add-new-product") {
-                setSelectedKeys(["product-add"]);
+            if (pathname === '/product-management') {
+                setSelectedKeys(['product-list']);
+            } else if (pathname === '/product-management/add-new-product') {
+                setSelectedKeys(['product-add']);
             }
+        } else if (pathname === '/supplier') {
+            setSelectedKeys(['supplier']);
+            setOpenKeys([]);
         }
     }, [location]);
 
@@ -47,9 +50,9 @@ const SiderComponent = () => {
                 />
                 <Text
                     style={{
-                        marginLeft: "5px",
-                        fontWeight: "bold",
-                        fontSize: "2rem",
+                        marginLeft: '5px',
+                        fontWeight: 'bold',
+                        fontSize: '2rem',
                     }}
                 >
                     {appInfo.title}
