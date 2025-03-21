@@ -2,10 +2,10 @@
     .ant-modal-mask {
         z-index: 20 !important;
     }
-    
+
     .ant-modal-wrap {
         z-index: 20 !important;
-    
+
         .ant-modal-body {
             padding: 20px 0;
         }
@@ -13,14 +13,14 @@
         .ant-modal-footer {
             .btn-ok {
                 &:hover {
-                    background-color: #24e841;
+                    background-color: #ad343e;
                 }
             }
 
             .btn-cancel {
                 &:hover {
-                    border-color: #21cf3c;
-                    color: #21cf3c;
+                    border-color: #ad343e;
+                    color: #ad343e;
                 }
             }
         }

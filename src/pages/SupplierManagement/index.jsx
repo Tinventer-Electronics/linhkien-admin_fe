@@ -1,12 +1,16 @@
-import { Button, Space, Table, Typography } from 'antd';
-import React from 'react';
+import { Button, Modal, Space, Table, Typography } from 'antd';
+import React, { useState } from 'react';
 import { MdEditSquare } from 'react-icons/md';
 import { RiUserForbidFill } from 'react-icons/ri';
 import { FiFilter } from 'react-icons/fi';
+import ModalSupplier from './ModalSupplier';
 
 const { Title } = Typography;
+const { confirm } = Modal;
 
 const SupplierManagement = () => {
+    const [isOpenModal, setIsOpenModal] = useState(false);
+    const [supplierSlected, setSupplierSlected] = useState();
     const dataTest = [
         {
             index: 1,
@@ -56,17 +60,27 @@ const SupplierManagement = () => {
             fixed: 'right',
             align: 'center',
             width: 100,
-            render: () => (
+            render: (item) => (
                 <Space>
                     <Button
                         color="default"
                         type="link"
                         icon={<MdEditSquare size={20} color="#3b82f6" />}
+                        onClick={() => {
+                            setIsOpenModal(true);
+                            setSupplierSlected(item);
+                        }}
                     />
                     <Button
                         color="danger"
                         type="link"
                         icon={<RiUserForbidFill size={20} color="#ef4444 " />}
+                        onClick={() => {
+                            confirm({
+                                title: 'Xác nhận',
+                                content: 'Bạn có chắc muốn xóa nhà cung cấp này không ?',
+                            });
+                        }}
                     />
                 </Space>
             ),
@@ -87,13 +101,27 @@ const SupplierManagement = () => {
                         </div>
                         <div className="text-end">
                             <Space>
-                                <Button type="primary">Thêm Mới</Button>
+                                <Button
+                                    type="primary"
+                                    onClick={() => {
+                                        setIsOpenModal(true);
+                                    }}
+                                >
+                                    Thêm Mới
+                                </Button>
                                 <Button icon={<FiFilter />}>Lọc</Button>
                                 <Button>Xuất File Excel</Button>
                             </Space>
                         </div>
                     </div>
                 )}
+            />
+
+            <ModalSupplier
+                setIsOpenModal={setIsOpenModal}
+                open={isOpenModal}
+                supplier={supplierSlected}
+                setSupplier={setSupplierSlected}
             />
         </div>
     );
