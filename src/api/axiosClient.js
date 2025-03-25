@@ -1,10 +1,14 @@
-import axios from "axios";
-import queryString from "query-string";
+import axios from 'axios';
+import queryString from 'query-string';
+import { localDataNames } from '../constants/appInfo';
 
-const baseURL = "http://localhost:3001";
-// const baseURLProduction = "https://project-4-server.onrender.com"
+const baseURL = 'http://localhost:3001';
+// const baseURLProduction = ""
 
-const getAccessToken = () => {};
+const getAccessToken = () => {
+    const res = localStorage.getItem(localDataNames.authData);
+    return res && JSON.parse(res).token;
+};
 
 const axiosClient = axios.create({
     baseURL: baseURL,
@@ -14,10 +18,11 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(async (config) => {
     const accessToken = getAccessToken();
     config.headers = {
-        Authorization: accessToken ? `Bearer ${accessToken}` : "",
-        Accept: "application/json",
+        Authorization: accessToken && `Bearer ${accessToken}`,
+        Accept: 'application/json',
         ...config.headers,
     };
+
     return { ...config, data: config.data ?? null };
 });
 
