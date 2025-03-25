@@ -3,6 +3,7 @@ import { MdOutlineInventory2 } from 'react-icons/md';
 import { TiHomeOutline } from 'react-icons/ti';
 import { FaRegCircleUser } from 'react-icons/fa6';
 import { Link } from 'react-router-dom';
+import { RiDiscountPercentLine } from 'react-icons/ri';
 
 export const items = [
     {
@@ -34,5 +35,10 @@ export const items = [
         key: 'supplier',
         label: <Link to={'/supplier'}>Quản lý nhà cung cấp</Link>,
         icon: <FaRegCircleUser size={18} />,
+    },
+    {
+        key: 'promotion',
+        label: <Link to={'/promotion'}>Quản lý giảm giá/khuyến mại</Link>,
+        icon: <RiDiscountPercentLine size={18} />,
     },
 ];

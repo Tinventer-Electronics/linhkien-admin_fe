@@ -33,6 +33,9 @@ const SiderComponent = () => {
         } else if (pathname === '/supplier') {
             setSelectedKeys(['supplier']);
             setOpenKeys([]);
+        } else if (pathname === '/promotion') {
+            setSelectedKeys(['promotion']);
+            setOpenKeys([]);
         }
     }, [location]);
 

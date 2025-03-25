@@ -8,6 +8,7 @@ import Category from '../pages/Category';
 import ProductManagement from '../pages/ProductManagement';
 import AddProduct from '../pages/ProductManagement/AddProduct';
 import SupplierManagement from '../pages/SupplierManagement';
+import PromotionManagement from '../pages/PromotionManagement';
 
 const { Content } = Layout;
 
@@ -33,6 +34,7 @@ const MainRouter = () => {
                                 />
                             </Route>
                             <Route path="/supplier" element={<SupplierManagement />} />
+                            <Route path="/promotion" element={<PromotionManagement />} />
                         </Routes>
                     </Content>
                 </Layout>
