@@ -1,7 +1,7 @@
 export const localDataNames = {
-    authData: "authData",
+    authData: 'authData',
 };
 
 export const appInfo = {
-    title: "Tinventer",
+    title: 'Tinventer',
 };

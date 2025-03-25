@@ -1,12 +1,12 @@
-import { Button, Form, Input, message } from "antd";
-import { useForm } from "antd/es/form/Form";
-import React, { useState } from "react";
-import "./styles.scss";
-import handleAPI from "../../../api/handleApi";
-import { useDispatch } from "react-redux";
-import { addAuth } from "../../../redux/reducers/authReducer";
-import { localDataNames } from "../../../constants/appInfo";
-import { apiEndpoint } from "../../../constants/apiEndpoint";
+import { Button, Form, Input, message } from 'antd';
+import { useForm } from 'antd/es/form/Form';
+import React, { useState } from 'react';
+import './styles.scss';
+import handleAPI from '../../../api/handleApi';
+import { useDispatch } from 'react-redux';
+import { addAuth } from '../../../redux/reducers/authReducer';
+import { localDataNames } from '../../../constants/appInfo';
+import { apiEndpoint } from '../../../constants/apiEndpoint';
 
 const Login = () => {
     const [isloading, setIsloading] = useState(false);
@@ -14,17 +14,13 @@ const Login = () => {
     const dispatch = useDispatch();
 
     const onFinish = async (values) => {
+        setIsloading(true);
         try {
-            setIsloading(true);
-
-            const res = await handleAPI(apiEndpoint.auth.login, values, "post");
+            const res = await handleAPI(apiEndpoint.auth.login, values, 'post');
             if (res.data) {
-                message.success("Đăng nhập thành công!!");
+                message.success('Đăng nhập thành công!!');
                 dispatch(addAuth(res.data));
-                localStorage.setItem(
-                    localDataNames.authData,
-                    JSON.stringify(res.data)
-                );
+                localStorage.setItem(localDataNames.authData, JSON.stringify(res.data));
             }
         } catch (error) {
             message.error(error.message);
@@ -34,49 +30,40 @@ const Login = () => {
     };
 
     return (
-        <div className="form__login min-h-[100vh] grid grid-rows-1 grid-cols-2 ">
+        <div className="form__login min-h-[100vh] grid grid-rows-1 grid-cols-2">
             <div
                 className='relative before:absolute before:content-[""] before:w-[6px] before:h-1/2 before:bg-[#ccc] before:top-1/2 before:translate-y-[-50%] before:right-[-3px] before:rounded-[999px]'
                 style={{
                     backgroundImage: `url('https://res.cloudinary.com/dncscl67q/image/upload/v1733130615/cld-sample-4.jpg')`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
                 }}
             ></div>
             <div className="flex items-center justify-center">
                 <div className="w-1/2">
                     <h2
-                        style={{ textAlign: "center", marginBottom: "20px" }}
+                        style={{ textAlign: 'center', marginBottom: '20px' }}
                         className="!font-bold text-[3.3rem]"
                     >
                         Đăng nhập
                     </h2>
-                    <Form
-                        form={form}
-                        layout="vertical"
-                        size="large"
-                        onFinish={onFinish}
-                    >
+                    <Form form={form} layout="vertical" size="large" onFinish={onFinish}>
                         <Form.Item
                             name="email"
                             label="Nhập email:"
                             rules={[
                                 {
-                                    type: "email",
-                                    message: "Email không hợp lệ!!",
+                                    type: 'email',
+                                    message: 'Email không hợp lệ!!',
                                 },
                                 {
                                     required: true,
-                                    message: "Bạn chưa nhập email!!",
+                                    message: 'Bạn chưa nhập email!!',
                                 },
                             ]}
                         >
-                            <Input
-                                className="h-[44px]"
-                                placeholder="Nhập email"
-                                allowClear
-                            />
+                            <Input className="h-[44px]" placeholder="Nhập email" allowClear />
                         </Form.Item>
                         <Form.Item
                             name="password"
@@ -84,7 +71,7 @@ const Login = () => {
                             rules={[
                                 {
                                     required: true,
-                                    message: "Bạn chưa nhập mật khẩu!!",
+                                    message: 'Bạn chưa nhập mật khẩu!!',
                                 },
                             ]}
                         >

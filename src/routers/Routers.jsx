@@ -1,9 +1,9 @@
-import React, { useEffect } from "react";
-import MainRouter from "./MainRouter";
-import AuthRouter from "./AuthRouter";
-import { addAuth, authSelector } from "../redux/reducers/authReducer";
-import { useDispatch, useSelector } from "react-redux";
-import { localDataNames } from "../constants/appInfo";
+import React, { useEffect } from 'react';
+import MainRouter from './MainRouter';
+import AuthRouter from './AuthRouter';
+import { addAuth, authSelector } from '../redux/reducers/authReducer';
+import { useDispatch, useSelector } from 'react-redux';
+import { localDataNames } from '../constants/appInfo';
 
 const Routers = () => {
     const auth = useSelector(authSelector);
