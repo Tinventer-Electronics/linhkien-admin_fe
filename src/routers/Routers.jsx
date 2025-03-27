@@ -4,6 +4,7 @@ import AuthRouter from './AuthRouter';
 import { addAuth, authSelector } from '../redux/reducers/authReducer';
 import { useDispatch, useSelector } from 'react-redux';
 import { localDataNames } from '../constants/appInfo';
+import { BrowserRouter } from 'react-router-dom';
 
 const Routers = () => {
     const auth = useSelector(authSelector);
@@ -19,8 +20,7 @@ const Routers = () => {
             dispatch(addAuth(JSON.parse(data)));
         }
     };
-
-    return auth.token ? <MainRouter /> : <AuthRouter />;
+    return <BrowserRouter>{auth.token ? <MainRouter /> : <AuthRouter />}</BrowserRouter>;
 };
 
 export default Routers;

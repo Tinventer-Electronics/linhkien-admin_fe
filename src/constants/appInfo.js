@@ -3,5 +3,5 @@ export const localDataNames = {
 };
 
 export const appInfo = {
-    title: 'Tinventer',
+    title: '阿里云',
 };
