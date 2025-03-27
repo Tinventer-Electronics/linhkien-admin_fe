@@ -44,18 +44,15 @@ const SiderComponent = () => {
     };
 
     return (
-        <Sider theme="light" width={300} className="h-[100vh] p-2">
-            <div className="flex items-center pl-5">
-                <img
-                    src="https://res.cloudinary.com/dncscl67q/image/upload/v1733130615/cld-sample-4.jpg"
-                    alt="Logo"
-                    width={28}
-                />
+        <Sider theme="light" width={280} className="h-[100vh] pr-1">
+            <div className="flex items-center ml-12 py-4">
+                <p className="font-bold text-[2rem] text-[#b22221]">()</p>
                 <Text
                     style={{
                         marginLeft: '5px',
                         fontWeight: 'bold',
                         fontSize: '2rem',
+                        color: '#b22221',
                     }}
                 >
                     {appInfo.title}

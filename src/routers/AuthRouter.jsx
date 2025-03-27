@@ -1,14 +1,12 @@
-import React from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Login from "../pages/Auth/Login";
+import React from 'react';
+import { Route, Routes } from 'react-router-dom';
+import Login from '../pages/Auth/Login';
 
 const AuthRouter = () => {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Login />} />
-            </Routes>
-        </BrowserRouter>
+        <Routes>
+            <Route path="/" element={<Login />} />
+        </Routes>
     );
 };
 

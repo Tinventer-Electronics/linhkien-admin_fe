@@ -2,7 +2,7 @@ import { Button, Form, Input, message } from 'antd';
 import { useForm } from 'antd/es/form/Form';
 import React, { useState } from 'react';
 import './styles.scss';
-import handleAPI from '../../../api/handleApi';
+import handleAPI from '../../../api/handleAPI';
 import { useDispatch } from 'react-redux';
 import { addAuth } from '../../../redux/reducers/authReducer';
 import { localDataNames } from '../../../constants/appInfo';
