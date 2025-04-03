@@ -3,12 +3,13 @@ import FormItem from 'antd/es/form/FormItem';
 import React, { useEffect, useRef, useState } from 'react';
 import Upload from 'antd/es/upload';
 import { FaPlus } from 'react-icons/fa6';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Editor } from '@tinymce/tinymce-react';
 import handleAPI from '../../../api/handleAPI';
 import { apiEndpoint } from '../../../constants/apiEndpoint';
 import { getTreevaluesMenu } from '../../../utils/getTreevaluesMenu';
 import { uploadFile } from '../../../utils/uploadFile';
+import { replaceName } from '../../../utils/replaceName';
 
 const { Title } = Typography;
 
@@ -18,12 +19,9 @@ const AddProduct = () => {
     const [fileList, setFileList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [content, setContent] = useState('');
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [tempUrl, setTempUrl] = useState(null);
-
+    const [pendingUploads, setPendingUploads] = useState([]);
     const editorRef = useRef(null);
 
-    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const id = searchParams.get('id');
 
@@ -40,19 +38,16 @@ const AddProduct = () => {
     }, [id]);
 
     const getCategories = async () => {
-        setIsLoading(true);
         try {
             const res = await handleAPI(apiEndpoint.category.getAll);
             const categoriesData = getTreevaluesMenu(res.data, false);
             setCategories(categoriesData);
         } catch (error) {
             console.error('Error fetching categories:', error);
-        } finally {
-            setIsLoading(false);
         }
     };
 
-    const getProductDetail = async (id) => {};
+    const getProductDetail = async () => {};
 
     //đây là hàm upload để xem trước ảnh
     const handleChangeUpLoad = ({ fileList: newFileList }) => {
@@ -69,242 +64,272 @@ const AddProduct = () => {
     };
 
     const handleAddProduct = async (values) => {
-        await handleImageUpload();
-        const content = editorRef.current.getContent();
-        const urlFiles = [];
-        if (imageList.length > 0) {
-            for (const i of imageList) {
-                const url = await uploadFile(i.originFileObj);
-                if (url) {
-                    urlFiles.push(url);
+        setIsLoading(true);
+        try {
+            await handleImageUpload();
+            const content = editorRef.current.getContent();
+            const urlFiles = [];
+            if (imageList.length > 0) {
+                for (const i of imageList) {
+                    const url = await uploadFile(i.originFileObj);
+                    if (url) {
+                        urlFiles.push(url);
+                    }
                 }
             }
+            const datas = {
+                ...values,
+                description: content,
+                images: urlFiles,
+                slug: replaceName(values.productName),
+            };
+            const res = await handleAPI(apiEndpoint.product.create, datas, 'POST');
+            if (res && res.data) {
+                alert(res.message);
+            }
+            form.resetFields();
+            setContent('');
+            setImageList([]);
+            setFileList([]);
+            setPendingUploads([]);
+            editorRef.current.setContent('');
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setIsLoading(false);
         }
-        console.log('values', { ...values, description: content, images: urlFiles });
     };
 
     // đây là hàm upload  ảnh và thay thế trong tinymce lên cloudinary lấy từ tinymce
     const handleImageUpload = async () => {
-        if (!selectedFile || !tempUrl) return;
-        try {
-            const url = await uploadFile(selectedFile);
+        if (pendingUploads.length === 0) return;
 
-            // Sử dụng API TinyMCE trực tiếp để tìm và thay thế ảnh
-            const editor = editorRef.current;
-            const images = editor.dom.select('img');
+        // Xử lý từng ảnh trong danh sách chờ
+        for (const item of pendingUploads) {
+            try {
+                const url = await uploadFile(item.file);
 
-            // Tìm tất cả ảnh trong nội dung và thay thế nếu có src giống tempUrl
-            let imageReplaced = false;
-            images.forEach((img) => {
-                // Kiểm tra nếu src bắt đầu bằng "data:" (base64) hoặc blob URL
-                if (
-                    img.src === tempUrl ||
-                    (tempUrl.startsWith('blob:') && img.src.startsWith('blob:')) ||
-                    (tempUrl.startsWith('data:') && img.src.startsWith('data:'))
-                ) {
+                // Tìm và thay thế ảnh dựa vào ID
+                const editor = editorRef.current;
+                const img = editor.dom.select(`img[data-upload-id="${item.id}"]`)[0];
+
+                if (img) {
                     editor.dom.setAttrib(img, 'src', url);
-                    imageReplaced = true;
+                    // Xóa attribute data-upload-id sau khi đã thay thế
+                    editor.dom.setAttrib(img, 'data-upload-id', null);
+                } else {
+                    // Fallback: tìm theo URL nếu không tìm thấy theo ID
+                    const images = editor.dom.select('img');
+                    images.forEach((img) => {
+                        if (
+                            img.src === item.tempUrl ||
+                            (item.tempUrl.startsWith('blob:') && img.src.startsWith('blob:')) ||
+                            (item.tempUrl.startsWith('data:') && img.src.startsWith('data:'))
+                        ) {
+                            editor.dom.setAttrib(img, 'src', url);
+                        }
+                    });
                 }
-            });
-
-            if (!imageReplaced) {
-                console.warn('Không tìm thấy ảnh cần thay thế');
+            } catch (error) {
+                console.error('Upload thất bại', error);
             }
-
-            // Reset state
-            setSelectedFile(null);
-        } catch (error) {
-            console.error('Upload thất bại', error);
         }
+
+        // Reset state sau khi hoàn thành
+        setPendingUploads([]);
     };
 
     return (
         <>
-            {isLoading ? (
-                <Spin></Spin>
-            ) : (
-                <>
-                    <Title level={4}>{id ? 'Sửa sản phẩm' : 'Thêm mới sản phẩm'}</Title>
-                    <Form
-                        form={form}
-                        size="large"
-                        layout="vertical"
-                        onFinish={handleAddProduct}
-                        disabled={isLoading}
-                    >
-                        <div className="grid grid-cols-12 gap-10">
-                            <div className="col-span-7">
-                                <Card className="mb-10" title="Chọn ảnh sản phẩm">
-                                    <Upload
-                                        listType="picture-card"
-                                        fileList={imageList}
-                                        onChange={handleChangeUpLoad}
-                                    >
-                                        <FaPlus style={{ marginRight: '5px' }} />
-                                        Tải lên
-                                    </Upload>
-                                </Card>
+            <Title level={4}>{id ? 'Sửa sản phẩm' : 'Thêm mới sản phẩm'}</Title>
+            <Form
+                form={form}
+                size="large"
+                layout="vertical"
+                onFinish={handleAddProduct}
+                disabled={isLoading}
+            >
+                <div className="grid grid-cols-12 gap-10">
+                    <div className="col-span-7">
+                        <Card className="mb-10" title="Chọn ảnh sản phẩm">
+                            <Upload
+                                listType="picture-card"
+                                fileList={imageList}
+                                onChange={handleChangeUpLoad}
+                                multiple
+                                beforeUpload={() => false}
+                            >
+                                <FaPlus style={{ marginRight: '5px' }} />
+                                Tải lên
+                            </Upload>
+                        </Card>
+                        <FormItem
+                            name="productName"
+                            label="Tên sản phẩm:"
+                            rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm.' }]}
+                        >
+                            <Input
+                                placeholder="Nhập tên sản phẩm"
+                                allowClear
+                                maxLength={150}
+                                showCount
+                            />
+                        </FormItem>
+                        <>
+                            <label className="mb-3 block">Nhập nội dung:</label>
+                            <Editor
+                                disabled={isLoading}
+                                apiKey="coe6w4dimiz7zarp3pxo9vcu389puehn385e39rkz6ywuv32"
+                                onInit={(evt, editor) => (editorRef.current = editor)}
+                                initialValue={content !== '' ? content : ''}
+                                init={{
+                                    language: 'vi',
+                                    plugins: [
+                                        'autolink',
+                                        'lists',
+                                        'link',
+                                        'image',
+                                        'media',
+                                        'table',
+                                        'wordcount',
+                                        'preview',
+                                    ],
+                                    forced_root_block: 'p',
+                                    toolbar:
+                                        'undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | link image media | numlist bullist | preview | removeformat',
+                                    mergetags_list: [
+                                        { value: 'First.Name', title: 'First Name' },
+                                        { value: 'Email', title: 'Email' },
+                                    ],
+                                    file_picker_callback: (callback, value, meta) => {
+                                        if (meta.filetype === 'image') {
+                                            const input = document.createElement('input');
+                                            input.setAttribute('type', 'file');
+                                            input.setAttribute('accept', 'image/*');
+                                            input.onchange = () => {
+                                                const file = input.files?.[0];
+                                                if (!file) return;
+
+                                                // Tạo ID duy nhất cho mỗi ảnh
+                                                const uploadId = Date.now().toString();
+                                                const previewUrl = URL.createObjectURL(file);
+
+                                                // Thêm thông tin vào danh sách chờ upload
+                                                setPendingUploads((prev) => [
+                                                    ...prev,
+                                                    {
+                                                        id: uploadId,
+                                                        file,
+                                                        tempUrl: previewUrl,
+                                                    },
+                                                ]);
+
+                                                // Chèn ảnh với ID để dễ tìm lại sau này
+                                                editorRef.current.insertContent(
+                                                    `<img src="${previewUrl}" data-upload-id="${uploadId}" />`
+                                                );
+                                            };
+                                            input.click();
+                                        }
+                                    },
+                                }}
+                            />
+                        </>
+                    </div>
+                    <div className="col-span-5">
+                        <Card>
+                            <FormItem
+                                name="categories"
+                                label="Chọn danh mục:"
+                                rules={[{ required: true, message: 'Vui lòng chọn danh mục.' }]}
+                            >
+                                <TreeSelect
+                                    treeData={categories}
+                                    multiple
+                                    // dropdownRender={(menu) => (
+                                    //     <>
+                                    //         {menu}
+                                    //         <Divider className="mb-1" />
+                                    //         <div className="text-end w-full">
+                                    //             <Button
+                                    //                 className="m-2"
+                                    //                 onClick={() =>
+                                    //                     setIsVisibleModalCategory(true)
+                                    //                 }
+                                    //             >
+                                    //                 Thêm mới
+                                    //             </Button>
+                                    //         </div>
+                                    //     </>
+                                    // )}
+                                />
+                            </FormItem>
+                            <div className="flex gap-6 justify-between">
                                 <FormItem
-                                    name="productName"
-                                    label="Tên sản phẩm:"
+                                    name="cost"
+                                    label="Nhập giá nhập vào:"
                                     rules={[
-                                        { required: true, message: 'Vui lòng nhập tên sản phẩm.' },
+                                        {
+                                            required: true,
+                                            message: 'Vui lòng nhập giá nhập vào!!',
+                                        },
                                     ]}
                                 >
-                                    <Input
-                                        placeholder="Nhập tên sản phẩm"
-                                        allowClear
-                                        maxLength={150}
-                                        showCount
-                                    />
+                                    <Input type="number" placeholder="Giá nhập vào" />
                                 </FormItem>
-                                <div>
-                                    <Typography.Text>Nhập nội dung:</Typography.Text>
-                                    <Editor
-                                        disabled={isLoading}
-                                        apiKey="coe6w4dimiz7zarp3pxo9vcu389puehn385e39rkz6ywuv32"
-                                        onInit={(evt, editor) => (editorRef.current = editor)}
-                                        initialValue={content !== '' ? content : ''}
-                                        init={{
-                                            language: 'vi',
-                                            plugins: [
-                                                'autolink',
-                                                'lists',
-                                                'link',
-                                                'image',
-                                                'media',
-                                                'table',
-                                                'wordcount',
-                                                'preview',
-                                            ],
-                                            forced_root_block: 'div',
-                                            toolbar:
-                                                'undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | link image media | numlist bullist | preview | removeformat',
-                                            mergetags_list: [
-                                                { value: 'First.Name', title: 'First Name' },
-                                                { value: 'Email', title: 'Email' },
-                                            ],
-                                            file_picker_callback: (callback, value, meta) => {
-                                                if (meta.filetype === 'image') {
-                                                    const input = document.createElement('input');
-                                                    input.setAttribute('type', 'file');
-                                                    input.setAttribute('accept', 'image/*');
-                                                    input.onchange = () => {
-                                                        const file = input.files?.[0];
-                                                        if (!file) return;
-                                                        const previewUrl =
-                                                            URL.createObjectURL(file);
-                                                        setSelectedFile(file);
-                                                        setTempUrl(previewUrl);
-                                                        editorRef.current.insertContent(
-                                                            `<img src="${previewUrl}" />`
-                                                        );
-                                                    };
-                                                    input.click();
-                                                }
-                                            },
-                                        }}
-                                    />
-                                </div>
+                                <FormItem
+                                    name="price"
+                                    label="Nhập giá bán ra:"
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message: 'Vui lòng nhập giá bán ra!!',
+                                        },
+                                    ]}
+                                >
+                                    <Input type="number" placeholder="Giá bán ra" />
+                                </FormItem>
                             </div>
-                            <div className="col-span-5">
-                                <Card>
-                                    <FormItem
-                                        name="categories"
-                                        label="Chọn danh mục:"
-                                        rules={[
-                                            { required: true, message: 'Vui lòng chọn danh mục.' },
-                                        ]}
-                                    >
-                                        <TreeSelect
-                                            treeData={categories}
-                                            multiple
-                                            // dropdownRender={(menu) => (
-                                            //     <>
-                                            //         {menu}
-                                            //         <Divider className="mb-1" />
-                                            //         <div className="text-end w-full">
-                                            //             <Button
-                                            //                 className="m-2"
-                                            //                 onClick={() =>
-                                            //                     setIsVisibleModalCategory(true)
-                                            //                 }
-                                            //             >
-                                            //                 Thêm mới
-                                            //             </Button>
-                                            //         </div>
-                                            //     </>
-                                            // )}
-                                        />
-                                    </FormItem>
-                                    <div className="flex gap-6 justify-between">
-                                        <FormItem
-                                            name="cost"
-                                            label="Nhập giá nhập vào:"
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                    message: 'Vui lòng nhập giá nhập vào!!',
-                                                },
-                                            ]}
-                                        >
-                                            <Input type="number" placeholder="Giá nhập vào" />
-                                        </FormItem>
-                                        <FormItem
-                                            name="price"
-                                            label="Nhập giá bán ra:"
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                    message: 'Vui lòng nhập giá bán ra!!',
-                                                },
-                                            ]}
-                                        >
-                                            <Input type="number" placeholder="Giá bán ra" />
-                                        </FormItem>
-                                    </div>
-                                    <FormItem name="code" label="Nhập mã sản phẩm:">
-                                        <Input placeholder="Mã sản phẩm" />
-                                    </FormItem>
-                                    <FormItem name="productOrigin" label="Nhập xuất xứ sản phẩm:">
-                                        <Input placeholder="Xuất xứ sản phẩm" />
-                                    </FormItem>
-                                    <div className="flex flex-col w-full">
-                                        <Typography.Text>Thêm tài liệu:</Typography.Text>
-                                        <Upload
-                                            listType="text"
-                                            fileList={fileList}
-                                            onChange={handleChangeUpLoad}
-                                            className="w-full mt-2"
-                                        >
-                                            <Button className="w-full">
-                                                <FaPlus style={{ marginRight: '5px' }} />
-                                                Tải file
-                                            </Button>
-                                        </Upload>
-                                    </div>
-                                </Card>
-                                <Card className="mt-5 text-end">
-                                    <Button
-                                        loading={isLoading}
-                                        type="primary"
-                                        onClick={() => form.submit()}
-                                    >
-                                        {id ? 'Sửa' : 'Thêm mới'}
+                            <FormItem name="code" label="Nhập mã sản phẩm:">
+                                <Input placeholder="Mã sản phẩm" />
+                            </FormItem>
+                            <FormItem name="productOrigin" label="Nhập xuất xứ sản phẩm:">
+                                <Input placeholder="Xuất xứ sản phẩm" />
+                            </FormItem>
+                            <div className="flex flex-col w-full">
+                                <Typography.Text>Thêm tài liệu:</Typography.Text>
+                                <Upload
+                                    listType="text"
+                                    fileList={fileList}
+                                    onChange={handleChangeUpLoad}
+                                    className="w-full mt-2"
+                                >
+                                    <Button className="w-full">
+                                        <FaPlus style={{ marginRight: '5px' }} />
+                                        Tải file
                                     </Button>
-                                </Card>
+                                </Upload>
                             </div>
-                        </div>
+                        </Card>
+                        <Card className="mt-5 text-end">
+                            <Button
+                                loading={isLoading}
+                                type="primary"
+                                onClick={() => form.submit()}
+                            >
+                                {id ? 'Sửa' : 'Thêm mới'}
+                            </Button>
+                        </Card>
+                    </div>
+                </div>
 
-                        {/* <ModalCategoty
+                {/* <ModalCategoty
                             visible={isVisibleModalCategory}
                             onClose={() => setIsVisibleModalCategory(false)}
                             values={categories}
                             onAddNew={async () => await getCategories()}
                         /> */}
-                    </Form>
-                </>
-            )}
+            </Form>
         </>
     );
 };

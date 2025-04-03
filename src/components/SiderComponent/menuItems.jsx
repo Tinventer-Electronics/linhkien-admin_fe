@@ -27,7 +27,7 @@ export const items = [
             },
             {
                 key: 'product-add',
-                label: <Link to={'/product-management/add-new-product'}>Thêm sản phẩm</Link>,
+                label: <Link to={'/product-management/add-new-product'}>Thiết lập sản phẩm</Link>,
             },
         ],
     },

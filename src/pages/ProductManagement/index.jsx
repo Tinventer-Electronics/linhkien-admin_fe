@@ -4,6 +4,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { MdEditSquare } from 'react-icons/md';
 import { MdDeleteForever } from 'react-icons/md';
 import { VND } from '../../utils/handleCurrency';
+import handleAPI from '../../api/handleAPI';
+import { apiEndpoint } from '../../constants/apiEndpoint';
+import CategoryComponent from '../../components/CategoryComponent';
 
 const { Title } = Typography;
 const { confirm } = Modal;
@@ -28,23 +31,10 @@ const Inventory = () => {
         onChange: onSelectChange,
     };
 
-    const dataTest = [
-        {
-            _id: '736476374673',
-            title: 'test1',
-            images: [],
-            productId: 'UAGHIUGBY',
-            description: 'test',
-            categories: 'test',
-            cost: '10000',
-            price: '20000',
-        },
-    ];
-
     const columns = [
         {
-            key: 'title',
-            dataIndex: 'title',
+            key: 'productName',
+            dataIndex: 'productName',
             title: 'Tên sản phẩm',
             width: 300,
         },
@@ -68,27 +58,29 @@ const Inventory = () => {
                 ),
         },
         {
-            key: 'productId',
-            dataIndex: 'productId',
+            key: 'code',
+            dataIndex: 'code',
             title: 'Mã sản phẩm',
             width: 250,
         },
         {
-            key: 'description',
-            dataIndex: 'description',
-            title: 'Mô tả',
-            width: 350,
-            render: (desc) => (
-                <Tooltip style={{ width: '320px' }} title={desc}>
-                    <div className="text-clamp">{desc}</div>
-                </Tooltip>
-            ),
+            key: 'productOrigin',
+            dataIndex: 'productOrigin',
+            title: 'Xuất xứ',
+            width: 200,
         },
         {
             key: 'categories',
             dataIndex: 'categories',
             title: 'Danh mục',
             width: 300,
+            render: (categories) => (
+                <Space>
+                    {categories.map((category) => (
+                        <CategoryComponent id={category} key={category} />
+                    ))}
+                </Space>
+            ),
         },
         {
             key: 'cost',
@@ -149,10 +141,22 @@ const Inventory = () => {
     }, []);
 
     const getProducts = async () => {
-        setProducts(dataTest);
+        setIsLoading(true);
+        try {
+            const queryParams = `?page=${page}&pageSize=${pageSize}`;
+            const res = await handleAPI(`${apiEndpoint.product.getAll}${queryParams}`);
+            if (res && res.data) {
+                setProducts(res.data);
+                setTotal(res.data.length);
+            }
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const deleteProduct = async (id) => {};
+    const deleteProduct = async () => {};
 
     const hanleSearchProduct = async () => {};
 
@@ -167,10 +171,10 @@ const Inventory = () => {
                 columns={columns}
                 pagination={{
                     showSizeChanger: true,
-                    onChange(page, pageSize) {
+                    onChange(page) {
                         setPage(page);
                     },
-                    onShowSizeChange(current, size) {
+                    onShowSizeChange(size) {
                         setPageSize(size);
                     },
                     total,
