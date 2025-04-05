@@ -10,6 +10,7 @@ import { apiEndpoint } from '../../../constants/apiEndpoint';
 import { getTreevaluesMenu } from '../../../utils/getTreevaluesMenu';
 import { uploadFile } from '../../../utils/uploadFile';
 import { replaceName } from '../../../utils/replaceName';
+import { findSlugsByIdsInTreeCategories } from '../../../utils/findSlugsByIdsInTreeCategories';
 
 const { Title } = Typography;
 
@@ -79,9 +80,10 @@ const AddProduct = () => {
             }
             const datas = {
                 ...values,
-                description: content,
+                descriptions: content,
                 images: urlFiles,
-                slug: replaceName(values.productName),
+                slug: replaceName(`${values.productName} ${values.code}`),
+                categories: findSlugsByIdsInTreeCategories(categories, values.categories),
             };
             const res = await handleAPI(apiEndpoint.product.create, datas, 'POST');
             if (res && res.data) {
@@ -290,7 +292,11 @@ const AddProduct = () => {
                                     <Input type="number" placeholder="Giá bán ra" />
                                 </FormItem>
                             </div>
-                            <FormItem name="code" label="Nhập mã sản phẩm:">
+                            <FormItem
+                                name="code"
+                                label="Nhập mã sản phẩm:"
+                                rules={[{ message: 'Vui lòng nhập mã sản phẩm!!', required: true }]}
+                            >
                                 <Input placeholder="Mã sản phẩm" />
                             </FormItem>
                             <FormItem name="productOrigin" label="Nhập xuất xứ sản phẩm:">
