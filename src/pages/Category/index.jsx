@@ -114,8 +114,6 @@ const Category = () => {
         try {
             const res = await handleAPI(apiEndpoint.category.getAll, null, 'get');
             const treeValue = getTreevaluesMenu(res.data, false);
-            console.log(treeValue);
-
             setTreeValues(treeValue);
         } catch (error) {
             console.log(error.message);
@@ -188,7 +186,6 @@ const Category = () => {
                             <TreeSelect
                                 treeData={treeValues}
                                 allowClear
-                                treeDefaultExpandAll
                                 placeholder="Chọn danh mục cha"
                             />
                         </FormItem>

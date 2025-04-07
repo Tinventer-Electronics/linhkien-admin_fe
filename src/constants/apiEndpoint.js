@@ -5,8 +5,8 @@ export const apiEndpoint = {
         refreshToken: '/auth/refresh-token',
     },
     product: {
-        getAll: '/storage/products',
-        create: '/product',
+        getAll: '/product',
+        create: '/product/add-new-product',
         update: '/product',
         delete: '/product',
     },
@@ -18,6 +18,7 @@ export const apiEndpoint = {
     },
     category: {
         getAll: '/category/get-categories',
+        getById: '/category/get-category/:id',
         create: '/category/add-category',
         update: '/category/update-category/:id',
         delete: '/category/delete-category/:id',
