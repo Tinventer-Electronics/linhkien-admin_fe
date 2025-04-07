@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import BaseModal from '../../../components/common/BaseModal';
 import { Upload, Form, Input, message } from 'antd';
 import { FaPlus } from 'react-icons/fa6';
-import { uploadFile } from '../../../utils/uploadFile';
+import { uploadFileImage } from '../../../utils/uploadFile';
 import { replaceName } from '../../../utils/replaceName';
 import handleAPI from '../../../api/handleAPI';
 import { apiEndpoint } from '../../../constants/apiEndpoint';
@@ -131,7 +131,7 @@ const ModalSupplier = ({ setIsOpenModal, ...props }) => {
             const values = await form.validateFields();
             let imageUrl = '';
             if (fileList.length > 0 && fileList[0].originFileObj) {
-                imageUrl = await uploadFile(fileList[0].originFileObj);
+                imageUrl = await uploadFileImage(fileList[0].originFileObj);
                 if (!imageUrl) {
                     message.error('Không thể tải lên hình ảnh. Vui lòng thử lại.');
                     return;
@@ -168,7 +168,7 @@ const ModalSupplier = ({ setIsOpenModal, ...props }) => {
             let imageUrl = supplier?.photoUrl || '';
 
             if (fileList.length > 0 && fileList[0].originFileObj) {
-                imageUrl = await uploadFile(fileList[0].originFileObj);
+                imageUrl = await uploadFileImage(fileList[0].originFileObj);
                 if (!imageUrl) {
                     message.error('Không thể tải lên hình ảnh. Vui lòng thử lại.');
                     return;

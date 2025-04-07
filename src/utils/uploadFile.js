@@ -1,5 +1,5 @@
 import axios from 'axios';
-export const uploadFile = async (file) => {
+export const uploadFileImage = async (file) => {
     try {
         if (!file) {
             console.error('Không có file để upload');
