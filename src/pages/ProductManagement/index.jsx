@@ -96,6 +96,12 @@ const Inventory = () => {
             render: (price) => VND.format(price),
         },
         {
+            key: 'promotion',
+            title: 'Khuyến mại',
+            dataIndex: 'promotion',
+            width: 150,
+        },
+        {
             key: 'action',
             title: 'Lựa chọn',
             align: 'center',

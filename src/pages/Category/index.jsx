@@ -186,7 +186,6 @@ const Category = () => {
                             <TreeSelect
                                 treeData={treeValues}
                                 allowClear
-                                treeDefaultExpandAll
                                 placeholder="Chọn danh mục cha"
                             />
                         </FormItem>

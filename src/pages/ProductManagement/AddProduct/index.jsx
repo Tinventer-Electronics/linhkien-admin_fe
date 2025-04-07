@@ -1,4 +1,4 @@
-import { Button, Card, Divider, Form, Input, Spin, TreeSelect, Typography } from 'antd';
+import { Button, Card, Divider, Form, Input, message, Spin, TreeSelect, Typography } from 'antd';
 import FormItem from 'antd/es/form/FormItem';
 import React, { useEffect, useRef, useState } from 'react';
 import Upload from 'antd/es/upload';
@@ -8,13 +8,15 @@ import { Editor } from '@tinymce/tinymce-react';
 import handleAPI from '../../../api/handleAPI';
 import { apiEndpoint } from '../../../constants/apiEndpoint';
 import { getTreevaluesMenu } from '../../../utils/getTreevaluesMenu';
-import { uploadFile } from '../../../utils/uploadFile';
+import { uploadFileImage } from '../../../utils/uploadFile';
 import { replaceName } from '../../../utils/replaceName';
 import { findSlugsByIdsInTreeCategories } from '../../../utils/findSlugsByIdsInTreeCategories';
+import { processFormData } from '../../../utils/formDataProcessor';
 
 const { Title } = Typography;
 
 const AddProduct = () => {
+    const [messageApi, contextHolder] = message.useMessage();
     const [categories, setCategories] = useState([]);
     const [imageList, setImageList] = useState([]);
     const [fileList, setFileList] = useState([]);
@@ -64,6 +66,7 @@ const AddProduct = () => {
         setImageList(items);
     };
 
+    // hàm thêm sản phẩm
     const handleAddProduct = async (values) => {
         setIsLoading(true);
         try {
@@ -72,22 +75,23 @@ const AddProduct = () => {
             const urlFiles = [];
             if (imageList.length > 0) {
                 for (const i of imageList) {
-                    const url = await uploadFile(i.originFileObj);
+                    const url = await uploadFileImage(i.originFileObj);
                     if (url) {
                         urlFiles.push(url);
                     }
                 }
             }
-            const datas = {
+            let datas = {
                 ...values,
                 descriptions: content,
                 images: urlFiles,
-                slug: replaceName(`${values.productName} ${values.code}`),
+                slug: replaceName(`${values.productName}`),
                 categories: findSlugsByIdsInTreeCategories(categories, values.categories),
             };
+            datas = processFormData(datas, ['code', 'productOrigin']);
             const res = await handleAPI(apiEndpoint.product.create, datas, 'POST');
             if (res && res.data) {
-                alert(res.message);
+                messageApi.success(res.message);
             }
             form.resetFields();
             setContent('');
@@ -96,7 +100,13 @@ const AddProduct = () => {
             setPendingUploads([]);
             editorRef.current.setContent('');
         } catch (error) {
-            console.log(error);
+            messageApi.error(error.message);
+            form.resetFields();
+            setContent('');
+            setImageList([]);
+            setFileList([]);
+            setPendingUploads([]);
+            editorRef.current.setContent('');
         } finally {
             setIsLoading(false);
         }
@@ -105,44 +115,41 @@ const AddProduct = () => {
     // đây là hàm upload  ảnh và thay thế trong tinymce lên cloudinary lấy từ tinymce
     const handleImageUpload = async () => {
         if (pendingUploads.length === 0) return;
-
-        // Xử lý từng ảnh trong danh sách chờ
-        for (const item of pendingUploads) {
+        // Lấy nội dung hiện tại của trình soạn thảo
+        const editor = editorRef.current;
+        const currentContent = editor.getContent();
+        // Tìm tất cả ID của ảnh vẫn còn trong nội dung
+        const uploadIdsInContent = [];
+        const regex = /data-upload-id="([^"]+)"/g;
+        let match;
+        while ((match = regex.exec(currentContent)) !== null) {
+            uploadIdsInContent.push(match[1]);
+        }
+        // Lọc danh sách chờ upload để chỉ bao gồm những ảnh vẫn còn trong nội dung
+        const activeUploads = pendingUploads.filter((item) => uploadIdsInContent.includes(item.id));
+        // Tiến hành tải lên chỉ những ảnh còn lại
+        for (const item of activeUploads) {
             try {
-                const url = await uploadFile(item.file);
-
+                const url = await uploadFileImage(item.file);
                 // Tìm và thay thế ảnh dựa vào ID
-                const editor = editorRef.current;
                 const img = editor.dom.select(`img[data-upload-id="${item.id}"]`)[0];
 
                 if (img) {
                     editor.dom.setAttrib(img, 'src', url);
                     // Xóa attribute data-upload-id sau khi đã thay thế
                     editor.dom.setAttrib(img, 'data-upload-id', null);
-                } else {
-                    // Fallback: tìm theo URL nếu không tìm thấy theo ID
-                    const images = editor.dom.select('img');
-                    images.forEach((img) => {
-                        if (
-                            img.src === item.tempUrl ||
-                            (item.tempUrl.startsWith('blob:') && img.src.startsWith('blob:')) ||
-                            (item.tempUrl.startsWith('data:') && img.src.startsWith('data:'))
-                        ) {
-                            editor.dom.setAttrib(img, 'src', url);
-                        }
-                    });
                 }
             } catch (error) {
                 console.error('Upload thất bại', error);
             }
         }
-
         // Reset state sau khi hoàn thành
         setPendingUploads([]);
     };
 
     return (
         <>
+            {contextHolder}
             <Title level={4}>{id ? 'Sửa sản phẩm' : 'Thêm mới sản phẩm'}</Title>
             <Form
                 form={form}
@@ -241,6 +248,13 @@ const AddProduct = () => {
                     <div className="col-span-5">
                         <Card>
                             <FormItem
+                                name="code"
+                                label="Mã sản phẩm:"
+                                rules={[{ message: 'Vui lòng nhập mã sản phẩm!!', required: true }]}
+                            >
+                                <Input placeholder="Nhập mã sản phẩm" />
+                            </FormItem>
+                            <FormItem
                                 name="categories"
                                 label="Chọn danh mục:"
                                 rules={[{ required: true, message: 'Vui lòng chọn danh mục.' }]}
@@ -266,41 +280,49 @@ const AddProduct = () => {
                                     // )}
                                 />
                             </FormItem>
+                            <FormItem
+                                name="productOrigin"
+                                label="Xuất xứ sản phẩm:"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: 'Vui lòng nhập xuất xứ!',
+                                    },
+                                ]}
+                            >
+                                <Input placeholder="Nhập xuất xứ sản phẩm" />
+                            </FormItem>
+                            <FormItem name="supplier" label="Nhà cung cấp:">
+                                <Input placeholder="Nhập nhà cung cấp" />
+                            </FormItem>
                             <div className="flex gap-6 justify-between">
                                 <FormItem
                                     name="cost"
-                                    label="Nhập giá nhập vào:"
+                                    label="Giá nhập vào:"
                                     rules={[
                                         {
                                             required: true,
-                                            message: 'Vui lòng nhập giá nhập vào!!',
+                                            message: 'Vui lòng nhập giá nhập vào!',
                                         },
                                     ]}
                                 >
-                                    <Input type="number" placeholder="Giá nhập vào" />
+                                    <Input type="number" placeholder=" Nhập giá nhập vào" />
                                 </FormItem>
                                 <FormItem
                                     name="price"
-                                    label="Nhập giá bán ra:"
+                                    label="Giá bán ra:"
                                     rules={[
                                         {
                                             required: true,
-                                            message: 'Vui lòng nhập giá bán ra!!',
+                                            message: 'Vui lòng nhập giá bán ra!',
                                         },
                                     ]}
                                 >
-                                    <Input type="number" placeholder="Giá bán ra" />
+                                    <Input type="number" placeholder="Nhập giá bán ra" />
                                 </FormItem>
                             </div>
-                            <FormItem
-                                name="code"
-                                label="Nhập mã sản phẩm:"
-                                rules={[{ message: 'Vui lòng nhập mã sản phẩm!!', required: true }]}
-                            >
-                                <Input placeholder="Mã sản phẩm" />
-                            </FormItem>
-                            <FormItem name="productOrigin" label="Nhập xuất xứ sản phẩm:">
-                                <Input placeholder="Xuất xứ sản phẩm" />
+                            <FormItem name="promotion" label="Khuyến mại:">
+                                <Input placeholder="Nhập khuyến mại" />
                             </FormItem>
                             <div className="flex flex-col w-full">
                                 <Typography.Text>Thêm tài liệu:</Typography.Text>
