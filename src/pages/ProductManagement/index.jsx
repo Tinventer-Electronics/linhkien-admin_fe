@@ -1,4 +1,4 @@
-import { Avatar, Button, Input, Modal, Space, Table, Tooltip, Typography } from 'antd';
+import { Avatar, Button, Input, Modal, Space, Table, Tag, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MdEditSquare } from 'react-icons/md';
@@ -6,7 +6,6 @@ import { MdDeleteForever } from 'react-icons/md';
 import { VND } from '../../utils/handleCurrency';
 import handleAPI from '../../api/handleAPI';
 import { apiEndpoint } from '../../constants/apiEndpoint';
-import CategoryComponent from '../../components/CategoryComponent';
 
 const { Title } = Typography;
 const { confirm } = Modal;
@@ -76,8 +75,8 @@ const Inventory = () => {
             width: 300,
             render: (categories) => (
                 <Space>
-                    {categories.map((category) => (
-                        <CategoryComponent id={category} key={category} />
+                    {categories.map((category, index) => (
+                        <Tag key={index}>{category}</Tag>
                     ))}
                 </Space>
             ),
