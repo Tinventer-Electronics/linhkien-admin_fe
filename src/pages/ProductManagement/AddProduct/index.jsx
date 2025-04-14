@@ -3,7 +3,7 @@ import FormItem from 'antd/es/form/FormItem';
 import React, { useEffect, useRef, useState } from 'react';
 import Upload from 'antd/es/upload';
 import { FaPlus } from 'react-icons/fa6';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Editor } from '@tinymce/tinymce-react';
 import handleAPI from '../../../api/handleAPI';
 import { apiEndpoint } from '../../../constants/apiEndpoint';
@@ -27,6 +27,7 @@ const AddProduct = () => {
 
     const [searchParams] = useSearchParams();
     const id = searchParams.get('id');
+    const navigate = useNavigate();
 
     const [form] = Form.useForm();
 
@@ -50,7 +51,32 @@ const AddProduct = () => {
         }
     };
 
-    const getProductDetail = async () => {};
+    const getProductDetail = async (id) => {
+        try {
+            const api = `${apiEndpoint.product.getProductDetail.replace(':id', id)}`;
+            const res = await handleAPI(api);
+            const item = res.data;
+            if (item) {
+                form.setFieldsValue(item);
+                setContent(item.descriptions);
+                if (item.images && item.images.length > 0) {
+                    const images = [...fileList];
+                    item.images.forEach((url) =>
+                        images.push({
+                            uid: `${Math.floor(Math.random() * 100000)}`,
+                            name: url,
+                            status: 'done',
+                            url,
+                        })
+                    );
+                    setImageList(images);
+                }
+            }
+        } catch (error) {
+            message.error(error.message);
+            console.log(error);
+        }
+    };
 
     //đây là hàm upload để xem trước ảnh
     const handleChangeUpLoad = ({ fileList: newFileList }) => {
@@ -89,6 +115,7 @@ const AddProduct = () => {
                 categories: findSlugsByIdsInTreeCategories(categories, values.categories),
             };
             datas = processFormData(datas, ['code', 'productOrigin']);
+            console.log(datas);
             const res = await handleAPI(apiEndpoint.product.create, datas, 'POST');
             if (res && res.data) {
                 messageApi.success(res.message);
@@ -99,6 +126,60 @@ const AddProduct = () => {
             setFileList([]);
             setPendingUploads([]);
             editorRef.current.setContent('');
+        } catch (error) {
+            messageApi.error(error.message);
+            form.resetFields();
+            setContent('');
+            setImageList([]);
+            setFileList([]);
+            setPendingUploads([]);
+            editorRef.current.setContent('');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleUpdateProduct = async (values) => {
+        setIsLoading(true);
+        try {
+            await handleImageUpload();
+            const content = editorRef.current.getContent();
+            const urlFiles = [];
+            if (imageList.length > 0) {
+                for (const i of imageList) {
+                    const url = await uploadFileImage(i.originFileObj);
+                    if (url) {
+                        urlFiles.push(url);
+                    } else {
+                        urlFiles.push(i.url);
+                    }
+                }
+            }
+            let datas = {
+                ...values,
+                descriptions: content,
+                images: urlFiles,
+                slug: replaceName(`${values.productName}`),
+                categories: findSlugsByIdsInTreeCategories(categories, values.categories),
+                code: values.code.toUpperCase(),
+                productOrigin: values.productOrigin.toUpperCase(),
+            };
+            const res = await handleAPI(
+                apiEndpoint.product.update.replace(':id', id),
+                datas,
+                'put'
+            );
+            if (res && res.data) {
+                console.log(res);
+                messageApi.success(res.message);
+            }
+            form.resetFields();
+            setContent('');
+            setImageList([]);
+            setFileList([]);
+            setPendingUploads([]);
+            editorRef.current.setContent('');
+            navigate('/product-management');
         } catch (error) {
             messageApi.error(error.message);
             form.resetFields();
@@ -155,7 +236,7 @@ const AddProduct = () => {
                 form={form}
                 size="large"
                 layout="vertical"
-                onFinish={handleAddProduct}
+                onFinish={id ? handleUpdateProduct : handleAddProduct}
                 disabled={isLoading}
             >
                 <div className="grid grid-cols-12 gap-10">
@@ -324,20 +405,9 @@ const AddProduct = () => {
                             <FormItem name="promotion" label="Khuyến mại:">
                                 <Input placeholder="Nhập khuyến mại" />
                             </FormItem>
-                            <div className="flex flex-col w-full">
-                                <Typography.Text>Thêm tài liệu:</Typography.Text>
-                                <Upload
-                                    listType="text"
-                                    fileList={fileList}
-                                    onChange={handleChangeUpLoad}
-                                    className="w-full mt-2"
-                                >
-                                    <Button className="w-full">
-                                        <FaPlus style={{ marginRight: '5px' }} />
-                                        Tải file
-                                    </Button>
-                                </Upload>
-                            </div>
+                            <FormItem name="quantity" label="Số lượng:">
+                                <Input type="number" placeholder="Nhập số lượng" />
+                            </FormItem>
                         </Card>
                         <Card className="mt-5 text-end">
                             <Button

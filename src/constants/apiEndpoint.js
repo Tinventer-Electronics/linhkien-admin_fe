@@ -6,9 +6,10 @@ export const apiEndpoint = {
     },
     product: {
         getAll: '/product',
+        getProductDetail: '/product/get-product-detail/:id',
         create: '/product/add-new-product',
-        update: '/product',
-        delete: '/product',
+        update: '/product/update-product/:id',
+        delete: '/product/delete-product/:id',
     },
     supplier: {
         getAll: '/supplier/get-suppliers',
