@@ -10,6 +10,7 @@ import {
     Table,
     TreeSelect,
     Typography,
+    Upload,
 } from 'antd';
 import { useForm } from 'antd/es/form/Form';
 import FormItem from 'antd/es/form/FormItem';
@@ -20,6 +21,7 @@ import handleAPI from '../../api/handleAPI';
 import { apiEndpoint } from '../../constants/apiEndpoint';
 import { replaceName } from '../../utils/replaceName';
 import { ReloadOutlined } from '@ant-design/icons';
+import { FaPlus } from 'react-icons/fa6';
 
 const { Title } = Typography;
 const { confirm } = Modal;
@@ -31,6 +33,7 @@ const Category = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingCreate, setIsLoadingCreate] = useState(false);
     const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
+    const [fileList, setFileList] = useState([]);
 
     const [form] = useForm();
 
@@ -97,6 +100,26 @@ const Category = () => {
         getTreeValueCategory();
     }, []);
 
+    const handleChangeUpLoad = ({ fileList: newFileList }) => {
+        if (newFileList.length > 0) {
+            const file = newFileList[0];
+
+            if (file.originFileObj) {
+                setFileList([
+                    {
+                        ...file,
+                        url: URL.createObjectURL(file.originFileObj),
+                        status: 'done',
+                    },
+                ]);
+            } else {
+                setFileList([file]);
+            }
+        } else {
+            setFileList([]);
+        }
+    };
+
     const getCategories = async () => {
         setIsLoading(true);
         try {
@@ -122,9 +145,18 @@ const Category = () => {
 
     const handleAddCategory = async (values) => {
         setIsLoadingCreate(true);
+        const formData = new FormData();
         try {
-            const datas = { ...values, slug: replaceName(values.categoryName) };
-            const res = await handleAPI(apiEndpoint.category.create, datas, 'post');
+            for (const i in values) {
+                formData.append(i, values[i]);
+            }
+            formData.append('image', fileList[0].originFileObj);
+            console.log(fileList[0].originFileObj);
+            formData.append('slug', replaceName(values.categoryName));
+            const res = await fetch('http://localhost:3001/category/add-category', {
+                method: 'POST',
+                body: formData,
+            });
             getCategories();
             getTreeValueCategory();
             message.success(res.message);
@@ -176,6 +208,24 @@ const Category = () => {
         <div className="grid grid-cols-12 gap-8">
             <div className="col-span-4">
                 <Card title={categorySelected ? 'Sửa danh mục' : 'Thêm mới danh mục'}>
+                    <p className="mb-5">Chọn ảnh danh mục:</p>
+                    <div className="flex justify-center mb-8">
+                        <Upload
+                            listType="picture-circle"
+                            fileList={fileList}
+                            onChange={handleChangeUpLoad}
+                            maxCount={1}
+                            beforeUpload={() => false}
+                            showUploadList={{ showRemoveIcon: true }}
+                        >
+                            {fileList.length >= 1 ? null : (
+                                <>
+                                    <FaPlus style={{ marginRight: '5px' }} />
+                                    Tải lên
+                                </>
+                            )}
+                        </Upload>
+                    </div>
                     <Form
                         onFinish={categorySelected ? handleUpdateCategory : handleAddCategory}
                         form={form}
