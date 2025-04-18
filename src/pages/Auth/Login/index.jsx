@@ -31,15 +31,13 @@ const Login = () => {
 
     return (
         <div className="form__login min-h-[100vh] grid grid-rows-1 grid-cols-2">
-            <div
-                className='relative before:absolute before:content-[""] before:w-[6px] before:h-1/2 before:bg-[#ccc] before:top-1/2 before:translate-y-[-50%] before:right-[-3px] before:rounded-[999px]'
-                style={{
-                    backgroundImage: `url('https://res.cloudinary.com/dncscl67q/image/upload/v1733130615/cld-sample-4.jpg')`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                }}
-            ></div>
+            <div className='relative before:absolute before:content-[""] before:w-[2px] before:h-3/4 before:bg-[#b22222] before:top-1/2 before:translate-y-[-50%] before:right-[-3px] before:rounded-[999px]'>
+                <img
+                    src="https://res.cloudinary.com/duc0g3qrs/image/upload/v1744962531/demo/10173532_o9ysnl.jpg"
+                    alt="Ảnh đăng nhập"
+                    className="w-full h-full object-contain"
+                />
+            </div>
             <div className="flex items-center justify-center">
                 <div className="w-1/2">
                     <h2
