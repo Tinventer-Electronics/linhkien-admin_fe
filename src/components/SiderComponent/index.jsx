@@ -36,6 +36,14 @@ const SiderComponent = () => {
         } else if (pathname === '/promotion') {
             setSelectedKeys(['promotion']);
             setOpenKeys([]);
+        } else if (pathname.includes('/recruitment-management')) {
+            setOpenKeys(['recruitment']);
+
+            if (pathname === '/recruitment-management') {
+                setSelectedKeys(['recruitment-list']);
+            } else if (pathname === '/recruitment-management/add-new-recruitment') {
+                setSelectedKeys(['recruitment-add']);
+            }
         }
     }, [location]);
 

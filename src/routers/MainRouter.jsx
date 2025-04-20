@@ -9,6 +9,8 @@ import ProductManagement from '../pages/ProductManagement';
 import AddProduct from '../pages/ProductManagement/AddProduct';
 import SupplierManagement from '../pages/SupplierManagement';
 import PromotionManagement from '../pages/PromotionManagement';
+import Recruitment from '../pages/Recruitment';
+import AddRecruitment from '../pages/Recruitment/AddRecruitment';
 
 const { Content } = Layout;
 
@@ -31,6 +33,10 @@ const MainRouter = () => {
                         </Route>
                         <Route path="/supplier" element={<SupplierManagement />} />
                         <Route path="/promotion" element={<PromotionManagement />} />
+                        <Route path="/recruitment-management">
+                            <Route index element={<Recruitment />} />
+                            <Route path="add-new-recruitment" element={<AddRecruitment />} />
+                        </Route>
                     </Routes>
                 </Content>
             </Layout>

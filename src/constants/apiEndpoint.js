@@ -24,4 +24,11 @@ export const apiEndpoint = {
         update: '/category/update-category/:id',
         delete: '/category/delete-category/:id',
     },
+    recruitment: {
+        getAll: '/recruitment/get-all-recruitment',
+        getById: '/recruitment/get-recruitment/:id',
+        create: '/recruitment/add-recruitment',
+        update: '/recruitment/update-recruitment/:id',
+        delete: '/recruitment/delete-recruitment/:id',
+    },
 };
