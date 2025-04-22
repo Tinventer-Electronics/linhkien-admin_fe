@@ -41,4 +41,23 @@ export const items = [
         label: <Link to={'/promotion'}>Quản lý giảm giá/khuyến mại</Link>,
         icon: <RiDiscountPercentLine size={18} />,
     },
+    {
+        key: 'recruitment',
+        label: 'Quản lý bài tuyển dụng',
+        icon: <MdOutlineInventory2 size={18} />,
+        children: [
+            {
+                key: 'recruitment-list',
+                label: <Link to={'/recruitment-management'}>Quản lý bài đăng</Link>,
+            },
+            {
+                key: 'recruitment-add',
+                label: (
+                    <Link to={'/recruitment-management/add-new-recruitment'}>
+                        Thiết lập bài đăng
+                    </Link>
+                ),
+            },
+        ],
+    },
 ];

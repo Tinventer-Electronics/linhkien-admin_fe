@@ -92,6 +92,16 @@ const Category = () => {
     useEffect(() => {
         if (categorySelected) {
             form.setFieldsValue(categorySelected);
+            if (categorySelected.image) {
+                const image = [];
+                image.push({
+                    uid: `${Math.floor(Math.random() * 100000)}`,
+                    name: categorySelected.image,
+                    status: 'done',
+                    url: categorySelected.image,
+                });
+                setFileList(image);
+            }
         }
     }, [categorySelected, form]);
 
@@ -147,20 +157,17 @@ const Category = () => {
         setIsLoadingCreate(true);
         const formData = new FormData();
         try {
-            for (const i in values) {
-                formData.append(i, values[i]);
-            }
-            formData.append('image', fileList[0].originFileObj);
-            console.log(fileList[0].originFileObj);
+            values.parentId && formData.append('parentId', values.parentId);
+            formData.append('categoryName', values.categoryName);
+            fileList.length > 0 && formData.append('image', fileList[0].originFileObj);
             formData.append('slug', replaceName(values.categoryName));
-            const res = await fetch('http://localhost:3001/category/add-category', {
-                method: 'POST',
-                body: formData,
-            });
+            values.description && formData.append('description', values.description);
+            const res = await handleAPI(apiEndpoint.category.create, formData, 'post');
             getCategories();
             getTreeValueCategory();
             message.success(res.message);
             form.resetFields();
+            setFileList([]);
         } catch (error) {
             message.error(error.message);
         } finally {
@@ -171,16 +178,28 @@ const Category = () => {
     const handleUpdateCategory = async (values) => {
         setIsLoadingUpdate(true);
         try {
-            const datas = { ...values, slug: replaceName(values.categoryName) };
+            const formData = new FormData();
+            values.parentId && formData.append('parentId', values.parentId);
+            formData.append('categoryName', values.categoryName);
+            fileList.length > 0 &&
+            fileList[0].originFileObj &&
+            Object.keys(fileList[0].originFileObj).length > 0
+                ? formData.append('image', fileList[0].originFileObj)
+                : formData.append('image', '');
+
+            formData.append('slug', replaceName(values.categoryName));
+            values.description && formData.append('description', values.description);
+            //const datas = { ...values, slug: replaceName(values.categoryName) };
             const res = await handleAPI(
                 apiEndpoint.category.update.replace(':id', categorySelected._id),
-                datas,
+                formData,
                 'put'
             );
             getCategories();
             getTreeValueCategory();
             message.success(res.message);
             form.resetFields();
+            setFileList([]);
             setCategorySelected(undefined);
         } catch (error) {
             message.error(error.message);
