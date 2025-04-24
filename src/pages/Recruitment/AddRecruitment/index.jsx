@@ -1,19 +1,20 @@
-import { Card, DatePicker, Form, Input, message, Typography, Upload } from 'antd';
+import { Button, Card, DatePicker, Form, Input, message, Typography, Upload } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { apiEndpoint } from '../../../constants/apiEndpoint';
 import { Editor } from '@tinymce/tinymce-react';
 import { FaPlus } from 'react-icons/fa6';
-import { uploadFileImage } from '../../../utils/uploadFile';
 import handleAPI from '../../../api/handleAPI';
+import { replaceName } from '../../../utils/replaceName';
+import dayjs from 'dayjs';
 
 const { Title } = Typography;
 
 const AddRecruitment = () => {
+    const [messageApi, contextHolder] = message.useMessage();
     const [imageList, setImageList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [content, setContent] = useState('');
-    const [pendingUploads, setPendingUploads] = useState([]);
     const editorRef = useRef(null);
 
     const [searchParams] = useSearchParams();
@@ -29,22 +30,24 @@ const AddRecruitment = () => {
 
     const getRecruitmentDetail = async (id) => {
         try {
-            const api = `${apiEndpoint.recruitment.getRecruitmentDetail.replace(':id', id)}`;
+            const api = `${apiEndpoint.recruitment.getById.replace(':id', id)}`;
             const res = await handleAPI(api);
             const item = res.data;
             if (item) {
-                form.setFieldsValue(item);
-                setContent(item.descriptions);
-                if (item.image && item.image.length > 0) {
-                    const image = [...imageList];
-                    item.images.forEach((url) =>
-                        image.push({
-                            uid: `${Math.floor(Math.random() * 100000)}`,
-                            name: url,
-                            status: 'done',
-                            url,
-                        })
-                    );
+                form.setFieldsValue({
+                    ...item,
+                    startAt: dayjs(item.startAt),
+                    endAt: dayjs(item.endAt),
+                });
+                setContent(item.content);
+                if (item.image) {
+                    const image = [];
+                    image.push({
+                        uid: `${Math.floor(Math.random() * 100000)}`,
+                        name: item.image,
+                        status: 'done',
+                        url: item.image,
+                    });
                     setImageList(image);
                 }
             }
@@ -67,38 +70,33 @@ const AddRecruitment = () => {
         setImageList(items);
     };
 
-    const handleImageUpload = async () => {
-        if (pendingUploads.length === 0) return;
-        const editor = editorRef.current;
-        const currentContent = editor.getContent();
-        const uploadIdsInContent = [];
-        const regex = /data-upload-id="([^"]+)"/g;
-        let match;
-        while ((match = regex.exec(currentContent)) !== null) {
-            uploadIdsInContent.push(match[1]);
-        }
-        const activeUploads = pendingUploads.filter((item) => uploadIdsInContent.includes(item.id));
-        for (const item of activeUploads) {
-            try {
-                const url = await uploadFileImage(item.file);
-                const img = editor.dom.select(`img[data-upload-id="${item.id}"]`)[0];
-
-                if (img) {
-                    editor.dom.setAttrib(img, 'src', url);
-                    editor.dom.setAttrib(img, 'data-upload-id', null);
-                }
-            } catch (error) {
-                console.error('Upload thất bại', error);
-            }
-        }
-        setPendingUploads([]);
-    };
-
     const handleAddRecruitment = async (values) => {
         try {
             setIsLoading(true);
-            handleImageUpload;
-            console.log(values);
+            const formData = new FormData();
+            formData.append('title', values.title);
+            formData.append('startAt', values.startAt);
+            formData.append('endAt', values.endAt);
+            formData.append('salary', values.salary);
+            imageList.length > 0 &&
+            imageList[0].originFileObj &&
+            Object.keys(imageList[0].originFileObj).length > 0
+                ? formData.append('image', imageList[0].originFileObj)
+                : formData.append('image', '');
+
+            formData.append('slug', replaceName(values.title));
+            const editor = editorRef.current;
+            const content = editor.getContent();
+            formData.append('content', content);
+            const api = apiEndpoint.recruitment.create;
+            const res = await handleAPI(api, formData, 'post');
+            messageApi.success(res.message);
+            form.resetFields();
+            setImageList([]);
+            if (editorRef.current) {
+                editorRef.current.setContent('');
+            }
+            setContent('');
         } catch (error) {
             console.log(error);
         } finally {
@@ -106,14 +104,48 @@ const AddRecruitment = () => {
         }
     };
 
+    const handleUpdateRecruiment = async (values) => {
+        setIsLoading(true);
+        const editor = editorRef.current;
+        const content = editor.getContent();
+        try {
+            const formData = new FormData();
+            formData.append('title', values.title);
+            formData.append('startAt', values.startAt);
+            formData.append('endAt', values.endAt);
+            formData.append('salary', values.salary);
+            formData.append('slug', replaceName(values.title));
+            formData.append('content', content);
+            imageList.length > 0 &&
+            imageList[0].originFileObj &&
+            Object.keys(imageList[0].originFileObj).length > 0
+                ? formData.append('image', imageList[0].originFileObj)
+                : formData.append('image', imageList[0].url);
+            const res = await handleAPI(
+                apiEndpoint.recruitment.update.replace(':id', id),
+                formData,
+                'put'
+            );
+            message.success(res.message);
+            form.resetFields();
+            setImageList([]);
+            setContent('');
+        } catch (error) {
+            message.error(error.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div>
+            {contextHolder}
             <Title level={4}>{id ? 'Sửa bài tuyển dụng' : 'Thêm mới bài tuyển dụng'}</Title>
             <Form
                 form={form}
                 size="large"
                 layout="vertical"
-                onFinish={handleAddRecruitment}
+                onFinish={id ? handleUpdateRecruiment : handleAddRecruitment}
                 disabled={isLoading}
             >
                 <div className="grid grid-cols-12 gap-10 mt-5">
@@ -156,22 +188,42 @@ const AddRecruitment = () => {
                                 label="Mức lương:"
                                 rules={[{ required: true, message: 'Bạn chưa nhập trường này' }]}
                             >
-                                <Input placeholder="Nhập mức lương" allowClear showCount />
+                                <Input type="number" placeholder="Nhập mức lương" allowClear />
                             </Form.Item>
                             <Form.Item
                                 name="startAt"
                                 label="Ngày bắt đầu ứng tuyển:"
                                 rules={[{ required: true, message: 'Bạn chưa nhập trường này' }]}
                             >
-                                <DatePicker className="w-full" format={'HH/MM/YYY'} allowClear />
+                                <DatePicker
+                                    className="w-full"
+                                    format={'DD/MM/YYYY'}
+                                    placeholder="Chọn ngày"
+                                    allowClear
+                                />
                             </Form.Item>
                             <Form.Item
                                 name="endAt"
                                 label="Ngày kết thúc ứng tuyển:"
                                 rules={[{ required: true, message: 'Bạn chưa nhập trường này' }]}
                             >
-                                <DatePicker className="w-full" format={'HH/MM/YYY'} allowClear />
+                                <DatePicker
+                                    className="w-full"
+                                    format={'DD/MM/YYYY'}
+                                    placeholder="Chọn ngày"
+                                    allowClear
+                                />
                             </Form.Item>
+
+                            <div className="text-end">
+                                <Button
+                                    loading={isLoading}
+                                    onClick={() => form.submit()}
+                                    type="primary"
+                                >
+                                    {id ? 'Sửa bài viết' : 'Đăng bài'}
+                                </Button>
+                            </div>
                         </Card>
                     </div>
                 </div>
@@ -213,16 +265,6 @@ const AddRecruitment = () => {
                                         // Tạo ID duy nhất cho mỗi ảnh
                                         const uploadId = Date.now().toString();
                                         const previewUrl = URL.createObjectURL(file);
-
-                                        // Thêm thông tin vào danh sách chờ upload
-                                        setPendingUploads((prev) => [
-                                            ...prev,
-                                            {
-                                                id: uploadId,
-                                                file,
-                                                tempUrl: previewUrl,
-                                            },
-                                        ]);
 
                                         // Chèn ảnh với ID để dễ tìm lại sau này
                                         editorRef.current.insertContent(
