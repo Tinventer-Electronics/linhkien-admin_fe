@@ -185,14 +185,16 @@ const Category = () => {
                 ? formData.append('parentId', values.parentId)
                 : formData.append('parentId', '');
             formData.append('categoryName', values.categoryName);
-            fileList.length > 0 &&
-            fileList[0].originFileObj &&
-            Object.keys(fileList[0].originFileObj).length > 0
-                ? formData.append('image', fileList[0].originFileObj)
-                : formData.append('image', fileList[0].url);
+            fileList.length > 0
+                ? fileList[0].originFileObj && Object.keys(fileList[0].originFileObj).length > 0
+                    ? formData.append('image', fileList[0].originFileObj)
+                    : formData.append('image', fileList[0].url)
+                : formData.append('image', '');
 
             formData.append('slug', replaceName(values.categoryName));
-            values.description && formData.append('description', values.description);
+            values.description
+                ? formData.append('description', values.description)
+                : formData.append('description', '');
             const res = await handleAPI(
                 apiEndpoint.category.update.replace(':id', categorySelected._id),
                 formData,

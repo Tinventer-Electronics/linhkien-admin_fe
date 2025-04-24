@@ -116,11 +116,11 @@ const AddRecruitment = () => {
             formData.append('salary', values.salary);
             formData.append('slug', replaceName(values.title));
             formData.append('content', content);
-            imageList.length > 0 &&
-            imageList[0].originFileObj &&
-            Object.keys(imageList[0].originFileObj).length > 0
-                ? formData.append('image', imageList[0].originFileObj)
-                : formData.append('image', imageList[0].url);
+            imageList.length > 0
+                ? imageList[0].originFileObj && Object.keys(imageList[0].originFileObj).length > 0
+                    ? formData.append('image', imageList[0].originFileObj)
+                    : formData.append('image', imageList[0].url)
+                : formData.append('image', '');
             const res = await handleAPI(
                 apiEndpoint.recruitment.update.replace(':id', id),
                 formData,
