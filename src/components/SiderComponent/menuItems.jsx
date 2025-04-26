@@ -4,6 +4,7 @@ import { TiHomeOutline } from 'react-icons/ti';
 import { FaRegCircleUser } from 'react-icons/fa6';
 import { Link } from 'react-router-dom';
 import { RiDiscountPercentLine } from 'react-icons/ri';
+import { AiOutlineAppstore } from 'react-icons/ai';
 
 export const items = [
     {
@@ -59,5 +60,10 @@ export const items = [
                 ),
             },
         ],
+    },
+    {
+        key: 'store',
+        label: <Link to={'/store'}>Quản lý cửa hàng</Link>,
+        icon: <AiOutlineAppstore size={18} />,
     },
 ];

@@ -31,4 +31,11 @@ export const apiEndpoint = {
         update: '/recruitment/update-recruitment/:id',
         delete: '/recruitment/delete-recruitment/:id',
     },
+    store: {
+        getAll: '/store/get-all-store',
+        getById: '/store/get-store/:id',
+        create: '/store/add-store',
+        update: '/store/update-store/:id',
+        delete: '/store/delete-store/:id',
+    },
 };
