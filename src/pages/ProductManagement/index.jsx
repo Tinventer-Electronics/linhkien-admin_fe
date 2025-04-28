@@ -1,4 +1,4 @@
-import { Avatar, Button, Input, Modal, Space, Table, Tag, Typography } from 'antd';
+import { Avatar, Button, Input, message, Modal, Space, Table, Tag, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MdEditSquare } from 'react-icons/md';
@@ -11,6 +11,7 @@ const { Title } = Typography;
 const { confirm } = Modal;
 
 const Inventory = () => {
+    const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false);
     const [products, setProducts] = useState([]);
     const [page, setPage] = useState(1);
@@ -161,12 +162,30 @@ const Inventory = () => {
         }
     };
 
-    const deleteProduct = async () => {};
+    const deleteProduct = async (id) => {
+        try {
+            setIsLoading(true);
+            const res = await handleAPI(
+                `${apiEndpoint.product.delete.replace(':id', id)}`,
+                null,
+                'delete'
+            );
+            if (res.message) {
+                messageApi.success(res.message);
+                getProducts();
+            }
+        } catch (error) {
+            messageApi.error(error.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const hanleSearchProduct = async () => {};
 
     return (
         <div>
+            {contextHolder}
             <Table
                 rowSelection={rowSelection}
                 loading={isLoading}

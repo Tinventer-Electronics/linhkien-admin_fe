@@ -6,9 +6,10 @@ export const apiEndpoint = {
     },
     product: {
         getAll: '/product',
+        getProductDetail: '/product/get-product-detail/:id',
         create: '/product/add-new-product',
-        update: '/product',
-        delete: '/product',
+        update: '/product/update-product/:id',
+        delete: '/product/delete-product/:id',
     },
     supplier: {
         getAll: '/supplier/get-suppliers',
@@ -22,5 +23,19 @@ export const apiEndpoint = {
         create: '/category/add-category',
         update: '/category/update-category/:id',
         delete: '/category/delete-category/:id',
+    },
+    recruitment: {
+        getAll: '/recruitment/get-all-recruitment',
+        getById: '/recruitment/get-recruitment/:id',
+        create: '/recruitment/add-recruitment',
+        update: '/recruitment/update-recruitment/:id',
+        delete: '/recruitment/delete-recruitment/:id',
+    },
+    store: {
+        getAll: '/store/get-all-store',
+        getById: '/store/get-store/:id',
+        create: '/store/add-store',
+        update: '/store/update-store/:id',
+        delete: '/store/delete-store/:id',
     },
 };

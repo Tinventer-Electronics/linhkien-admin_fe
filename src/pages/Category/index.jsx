@@ -10,6 +10,7 @@ import {
     Table,
     TreeSelect,
     Typography,
+    Upload,
 } from 'antd';
 import { useForm } from 'antd/es/form/Form';
 import FormItem from 'antd/es/form/FormItem';
@@ -20,6 +21,7 @@ import handleAPI from '../../api/handleAPI';
 import { apiEndpoint } from '../../constants/apiEndpoint';
 import { replaceName } from '../../utils/replaceName';
 import { ReloadOutlined } from '@ant-design/icons';
+import { FaPlus } from 'react-icons/fa6';
 
 const { Title } = Typography;
 const { confirm } = Modal;
@@ -31,6 +33,7 @@ const Category = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingCreate, setIsLoadingCreate] = useState(false);
     const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
+    const [fileList, setFileList] = useState([]);
 
     const [form] = useForm();
 
@@ -89,6 +92,16 @@ const Category = () => {
     useEffect(() => {
         if (categorySelected) {
             form.setFieldsValue(categorySelected);
+            if (categorySelected.image) {
+                const image = [];
+                image.push({
+                    uid: `${Math.floor(Math.random() * 100000)}`,
+                    name: categorySelected.image,
+                    status: 'done',
+                    url: categorySelected.image,
+                });
+                setFileList(image);
+            }
         }
     }, [categorySelected, form]);
 
@@ -96,6 +109,26 @@ const Category = () => {
         getCategories();
         getTreeValueCategory();
     }, []);
+
+    const handleChangeUpLoad = ({ fileList: newFileList }) => {
+        if (newFileList.length > 0) {
+            const file = newFileList[0];
+
+            if (file.originFileObj) {
+                setFileList([
+                    {
+                        ...file,
+                        url: URL.createObjectURL(file.originFileObj),
+                        status: 'done',
+                    },
+                ]);
+            } else {
+                setFileList([file]);
+            }
+        } else {
+            setFileList([]);
+        }
+    };
 
     const getCategories = async () => {
         setIsLoading(true);
@@ -122,13 +155,21 @@ const Category = () => {
 
     const handleAddCategory = async (values) => {
         setIsLoadingCreate(true);
+        const formData = new FormData();
         try {
-            const datas = { ...values, slug: replaceName(values.categoryName) };
-            const res = await handleAPI(apiEndpoint.category.create, datas, 'post');
+            values.parentId && formData.append('parentId', values.parentId);
+            formData.append('categoryName', values.categoryName);
+            fileList.length > 0
+                ? formData.append('image', fileList[0].originFileObj)
+                : formData.append('image', '');
+            formData.append('slug', replaceName(values.categoryName));
+            values.description && formData.append('description', values.description);
+            const res = await handleAPI(apiEndpoint.category.create, formData, 'post');
             getCategories();
             getTreeValueCategory();
             message.success(res.message);
             form.resetFields();
+            setFileList([]);
         } catch (error) {
             message.error(error.message);
         } finally {
@@ -139,16 +180,31 @@ const Category = () => {
     const handleUpdateCategory = async (values) => {
         setIsLoadingUpdate(true);
         try {
-            const datas = { ...values, slug: replaceName(values.categoryName) };
+            const formData = new FormData();
+            values.parentId
+                ? formData.append('parentId', values.parentId)
+                : formData.append('parentId', '');
+            formData.append('categoryName', values.categoryName);
+            fileList.length > 0
+                ? fileList[0].originFileObj && Object.keys(fileList[0].originFileObj).length > 0
+                    ? formData.append('image', fileList[0].originFileObj)
+                    : formData.append('image', fileList[0].url)
+                : formData.append('image', '');
+
+            formData.append('slug', replaceName(values.categoryName));
+            values.description
+                ? formData.append('description', values.description)
+                : formData.append('description', '');
             const res = await handleAPI(
                 apiEndpoint.category.update.replace(':id', categorySelected._id),
-                datas,
+                formData,
                 'put'
             );
             getCategories();
             getTreeValueCategory();
             message.success(res.message);
             form.resetFields();
+            setFileList([]);
             setCategorySelected(undefined);
         } catch (error) {
             message.error(error.message);
@@ -176,6 +232,24 @@ const Category = () => {
         <div className="grid grid-cols-12 gap-8">
             <div className="col-span-4">
                 <Card title={categorySelected ? 'Sửa danh mục' : 'Thêm mới danh mục'}>
+                    <p className="mb-5">Chọn ảnh danh mục:</p>
+                    <div className="flex justify-center mb-8">
+                        <Upload
+                            listType="picture-circle"
+                            fileList={fileList}
+                            onChange={handleChangeUpLoad}
+                            maxCount={1}
+                            beforeUpload={() => false}
+                            showUploadList={{ showRemoveIcon: true }}
+                        >
+                            {fileList.length >= 1 ? null : (
+                                <>
+                                    <FaPlus style={{ marginRight: '5px' }} />
+                                    Tải lên
+                                </>
+                            )}
+                        </Upload>
+                    </div>
                     <Form
                         onFinish={categorySelected ? handleUpdateCategory : handleAddCategory}
                         form={form}
